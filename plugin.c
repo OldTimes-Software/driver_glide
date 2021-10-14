@@ -27,6 +27,6 @@ PL_EXPORT const PLGDriverImportTable *InitializeGraphicsDriver( const PLGDriverE
 
 	glLogLevel = gInterface->core->AddLogLevel( "plugin/glide", PLColourRGB( 255, 255, 255 ), true );
 
-	extern PLGDriverImportTable graphicsInterface;
-	return &graphicsInterface;
+	const PLGDriverImportTable *DrvGlide_GetImportTable( void );
+	return DrvGlide_GetImportTable();
 }
