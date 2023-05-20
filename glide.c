@@ -7,10 +7,10 @@
 #include "plugin.h"
 
 #if defined( _WIN32 )
-#include <windows.h>
+#	include <windows.h>
 #endif
-#if defined( _MSC_VER )
-#define __MSC__
+#if defined( _MSC_VER ) || defined( __MINGW32__ )
+#	define __MSC__
 #endif
 #include <glide.h>
 
@@ -28,7 +28,7 @@ typedef struct GlideDrvRenderState {
 } GlideDrvRenderState;
 static GlideDrvRenderState renderState;
 
-static void Initialize( void ) {
+static PLFunctionResult Initialize( void ) {
 	memset( &renderState, 0, sizeof( GlideDrvRenderState ) );
 
 	FxI32 numBoards;
@@ -37,7 +37,7 @@ static void Initialize( void ) {
 		gInterface->core->ReportError( PL_RESULT_GRAPHICSINIT,
 		                               PL_FUNCTION,
 		                               "no valid glide boards found" );
-		return;
+		return PL_RESULT_GRAPHICSINIT;
 	}
 
 	grGlideInit();
@@ -118,16 +118,18 @@ static void Initialize( void ) {
 	                                    2, 1 );
 	if ( renderState.context == 0 ) {
 		gInterface->core->ReportError( PL_RESULT_GRAPHICSINIT, PL_FUNCTION, "failed to create glide context" );
-		return;
+		return PL_RESULT_GRAPHICSINIT;
 	}
 
 	/* describe our vertex layout for glide (it never changes) */
-	grVertexLayout( GR_PARAM_XY, pl_offsetof( PLGVertex, position.x ), GR_PARAM_ENABLE );
-	grVertexLayout( GR_PARAM_Z, pl_offsetof( PLGVertex, position.z ), GR_PARAM_ENABLE );
-	grVertexLayout( GR_PARAM_RGB, pl_offsetof( PLGVertex, colour ), GR_PARAM_ENABLE );
-	grVertexLayout( GR_PARAM_ST0, pl_offsetof( PLGVertex, st[ 0 ].x ), GR_PARAM_ENABLE );
-	grVertexLayout( GR_PARAM_ST1, pl_offsetof( PLGVertex, st[ 1 ].x ), GR_PARAM_ENABLE );
-	grVertexLayout( GR_PARAM_ST2, pl_offsetof( PLGVertex, st[ 2 ].x ), GR_PARAM_ENABLE );
+	grVertexLayout( GR_PARAM_XY, PL_OFFSETOF( PLGVertex, position.x ), GR_PARAM_ENABLE );
+	grVertexLayout( GR_PARAM_Z, PL_OFFSETOF( PLGVertex, position.z ), GR_PARAM_ENABLE );
+	grVertexLayout( GR_PARAM_RGB, PL_OFFSETOF( PLGVertex, colour ), GR_PARAM_ENABLE );
+	grVertexLayout( GR_PARAM_ST0, PL_OFFSETOF( PLGVertex, st[ 0 ].x ), GR_PARAM_ENABLE );
+	grVertexLayout( GR_PARAM_ST1, PL_OFFSETOF( PLGVertex, st[ 1 ].x ), GR_PARAM_ENABLE );
+	grVertexLayout( GR_PARAM_ST2, PL_OFFSETOF( PLGVertex, st[ 2 ].x ), GR_PARAM_ENABLE );
+
+	return PL_RESULT_SUCCESS;
 }
 
 static void Shutdown( void ) {
@@ -201,7 +203,7 @@ static void SetCullMode( PLGCullMode cullMode ) {
 	GrCullMode_t cull;
 	if ( cullMode == PLG_CULL_NEGATIVE ) {
 		cull = GR_CULL_NEGATIVE;
-	} else if ( cullMode == PLG_CULL_POSTIVE ) {
+	} else if ( cullMode == PLG_CULL_POSITIVE ) {
 		cull = GR_CULL_POSITIVE;
 	} else {
 		cull = GR_CULL_DISABLE;
@@ -226,7 +228,6 @@ static void DrawPixel( int x, int y, PLColour colour ) {
 }
 
 static void DrawMesh( PLGMesh *mesh, PLGShaderProgram *program ) {
-
 }
 
 const PLGDriverImportTable *DrvGlide_GetImportTable( void ) {
